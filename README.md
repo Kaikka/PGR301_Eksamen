@@ -1,6 +1,6 @@
 # Eksamen PGR301
 
-## Bakgrunn push to master again
+## Bakgrunn
 
 Du er leid inn til SkalBank AS, som trenger desperat hjelp.
 
