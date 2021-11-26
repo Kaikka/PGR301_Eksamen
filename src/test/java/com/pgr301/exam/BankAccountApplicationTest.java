@@ -16,10 +16,9 @@ class BankAccountApplicationTest {
     public void MakeAccountAndGetBalance() {
         Account a = new Account();
         BigDecimal balance = new BigDecimal(4200);
-        BigDecimal balance2 = new BigDecimal(42000);
 
         a.setBalance(balance);
 
-        assertEquals(balance2, a.getBalance());
+        assertEquals(balance, a.getBalance());
     }
 }
