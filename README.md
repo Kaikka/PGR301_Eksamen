@@ -1,6 +1,9 @@
 # Eksamen PGR301
 
-## Bakgrunn push to master again
+[![Java CI with Maven](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml)
+[![Terraform](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml)
+
+## Bakgrunn 
 
 Du er leid inn til SkalBank AS, som trenger desperat hjelp.
 
