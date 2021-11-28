@@ -4,6 +4,6 @@ COPY pom.xml .
 COPY src ./src
 RUN mvn -B package
 
-FROM adoptopenjdk/openjdk11:alpine-slim
+FROM openjdk:18-jdk-alpine3.14
 COPY --from=builder /app/target/*.jar /app/application.jar
 ENTRYPOINT ["java","-jar","/app/application.jar"]
