@@ -2,6 +2,7 @@
 
 [![Java CI with Maven](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml)
 [![Terraform](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml)
+[![Publish Docker image](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/create_image.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/create_image.yaml)
 
 ## Bakgrunn 
 
