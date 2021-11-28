@@ -25,13 +25,13 @@ jobs:
         run: terraform fmt -check
 
       - name: Terraform Init
+        uses: hashicorp/terraform-github-actions@master
         id: init
         with:
           tf_actions_subcommand: 'init'
           tf_actions_working_dir: 'infra'
           tf_Actions_comment: true
         run: terraform init
-
 
       - name: Terraform Validate
         id: validate
