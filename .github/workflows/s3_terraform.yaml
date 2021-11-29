@@ -1,4 +1,4 @@
-name: "Terraform"
+name: Terraform S3 and ECR
 on:
   push:
     branches: [ master ]
