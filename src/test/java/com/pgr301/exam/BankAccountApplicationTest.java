@@ -19,6 +19,6 @@ class BankAccountApplicationTest {
 
         a.setBalance(balance);
 
-        assertEquals(new BigDecimal(42), a.getBalance());
+        assertEquals(balance, a.getBalance());
     }
 }

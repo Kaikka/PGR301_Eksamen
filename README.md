@@ -1,10 +1,10 @@
-# PGR301 DevOps Eksamen, Høst 2021, Høyskolen Kristianiaa
+# PGR301 DevOps Eksamen, Høst 2021, Høyskolen Kristiania
 
 [![Java CI with Maven](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml)
 [![Terraform S3 and ECR](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml)
 [![Publish Docker image to ECR](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/create_image.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/create_image.yaml)
 
-Kandidatnummer: 2017
+Kandidatnummer: 2017  
 Alle oppgaver er fullført slik jeg tolket dem
 
 ## Oppgave – DevOps
