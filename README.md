@@ -1,4 +1,4 @@
-# PGR301 DevOps Eksamen, Høst 2021, Høyskolen Kristiania
+# PGR301 DevOps Eksamen, Høst 2021, Høyskolen Kristianiaa
 
 [![Java CI with Maven](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml)
 [![Terraform S3 and ECR](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml)
