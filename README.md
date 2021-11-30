@@ -1,273 +1,140 @@
-# Eksamen PGR301
+# PGR301 DevOps Eksamen, Høst 2021, Høyskolen Kristiania
 
-## Bakgrunn
+[![Java CI with Maven](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml)
+[![Terraform S3 and ECR](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml)
+[![Publish Docker image to ECR](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/create_image.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/create_image.yaml)
 
-Du er leid inn til SkalBank AS, som trenger desperat hjelp.
+Kandidatnummer: 2017
+Alle oppgaver er fullført slik jeg tolket dem
 
-Banken har brukt flere år og hundretalls milioner på å utvikle et moderne kjernesystem for bank og et "fremoverlent" API som
-nesten tilfredsstiller __Directive (EU) 2015/2366 of the European Parliament and of the Council on Payment Services in the
-Internal Market, published 25 November 2016__ også kjent som PSD.
+## Oppgave – DevOps
+- *Beskriv med ord eller skjermbilder hvordan man kan konfigurere GitHub på en måte som gir bedre kontroll på utviklingsprosessen. Spesielt med tanke på å hindre kode som ikke kompilerer og feilende tester fra å bli integrert i main branch.*
+- *Beskriv med ord eller skjermbilder hvordan GitHub kan konfigureres for å sikre at minst ett annet medlem av teamet har godkjent en pull request før den merges.*
+- *Beskriv hvordan arbeidsflyten for hver enkelt utvikler bør være for å få en effektiv som mulig utviklingsprosess, spesielt hvordan hver enkelt utvikler bør jobbe med Brancher i GitHub hver gang han eller hun starter en ny oppgave.*
 
-Dette er en viktig satsning innen området "Open Banking" for SkalBank.
+For å få god kontroll på arbeidsprosessen kan man sette opp «Branch protection rules», i `Settings -> Branches -> Add Rule`. «Require a pull request before merging» betyr at man ikke kan pushe rett til main, men at man må gå gjennom en annen branch og så lage pull requests. Man kan sikre at andre medlemmer har godkjent pull requesten ved å velge «Require approvals».  
+NB: Man må også velge «Include administrators» om det skal gjelde for absolutt alle. 
 
-Arkitekturmessig består systemet av to komponenter.
+![pull_review_require_approval.png](img/pull_review_require_approval.png)
 
-* Et API, implementert ved hjelp av Spring Boot. Applikasjonen og noe infrastrukturkode ligger i dette repoet.
-* Et kjernesystem som utfører transaksjoner med andre banker, avregner mot Norges bank osv. Dere kan late som metodekall som gjøres mot klassen ReallyShakyBankingCoreSystemService, kommuniserer med dette systemet.
-* NB! Dere skal IKKE gjøre endringer i klassen *ReallyShakyBankingCoreSystmeService*
+For å forhindre at man får feilende tester i main branchen, kan man sette opp å kreve status checks før man merger. I bildet under er det valgt at «build» is Github Actions skal bli godkjent før man kan merge en pull request. I eksempelet her vil koden prøve å bygge en JAR med  `mvn -B package –file pom.xml`. Om det feiler, kan man ikke merge. Man kan også kun kjøre tester, f.eks. `npm test` i et prosjekt som bruker npm, f.eks. en nettside i React.
 
-Finanstilsynet et litt imponert over den delvise etterlevelsen av direktivet, men ikke imponert over stabiliteten til SkalBanks API. Banken har en en rekke tekniske problemer
+![pull_test_require_running.png](img/pull_test_require_running.png)
 
-* Applikasjonen er veldig ustabil.
-* Det er vanskelig å si om problemet ligger i API eller kjernesystemet. Alle driver faktaløs "Blamestorming" uten å fokusere på å finne ut av hvor problemet ligger.
-* Responstidene er veldig variabel, og Applikasjonen feiler med sporadiske "BackEndException".
-* Det er umulig å se hva som faktisk er feil. Applikasjonen lager lite logger, og gir ikke fra seg noe form for telemetri.
+For å få en effektiv arbeidsflyt, burde nye oppgaver ha egne branches, som igjen er navngitt med beskrivende navn. Man kan også knytte mulige github issues opp mot branch ved å bruke github issues ID i navnet på branchen. Her kan forskjellige firmaer ha forskjellige konvensjoner på hvordan de navngir branches, men et eksempel vil være «feature/feature-pomchange». Ikke «fix-new-test».  
+Her er det viktig at man ikke går utover det branchen er ment for. En branch som er for en spesifikk type test skal plutselig ikke inneholde 3 andre ting når man gjør pull request. Man må begrense oppgavestørrelse for å opprettholde god flow.
 
-SkalBank har også problmer med sin systemutviklingsprosess for API teamet.
+*Drøft: SkalBank har bestemt seg for å bruke DevOps som underliggende prinsipp for all systemutvikling i banken. Er fordeling av oppgaver mellom API-teamet og «Team Dino» problematisk med dette som utgangspunkt? Hvilke prinsipper er det som ikke etterleves her? Hva er i så fall konsekvensen av dette?*
 
-* Mellom fem og ti utviklere committer til _main_ branch kontinuerlig, uten nødvendigvis å kompilere koden og kjøre
-  tester. Dette skaper naturligvis det komplette kaos.
-* Det finnes et team i SkalBank som jobber med manuelle tester og drift; _"Team Dino"_. Teamet er på ca 100 ansatte og SkalBank vurderer å
-  rekruttere ytterligere for å øke kvaliteten på leveransene som har vært fallende siden lansering.
-* Hver gang en ny versjon av API skal releases, lager tech lead "Jens" en JAR han gir til "Team Dino"".
-* "Team Dino" tester applikasjonen grundig- og setter den nye versjonen i drift.
-* "Team Dino" gjør overfladisk overvåkning, og starter applikasjonen på nytt hver natt eller etter behov.  
+Måten utvikler-teamet alle pusher til main kontinuerlig, uten å hverken bygge eller teste koden, skaper flere problemer for flyten. Det bryter med *VCS* og *Kontinuerlig integrasjon*, og kan skape mye *Waste* på flere måter. Det kan også resultere i at arbeid ikke er veldig synlig, oppgavestørrelser kan bli for store og man har liten oversikt over «WIP» (Work in progress).
 
-## Krav til leveransen
+- Om to utviklere jobber på forskjellige ting, kan det hende de forårsaker defekter for hverandre. Plutselig fungerer ikke koden til utvikler A fordi utvikler B har gjort en endring et sted. Da må begge «context switche» for å løse problemet.
+- Uten god planlegging blir det fort venting på andre features når man skal legge inn nye ting, om det avhenger av hverandre. Om man skal bruke et eksisterende endepunkt som mangler dokumentasjon, man må ta tak i en annen utvikler og skape avbrudd i dens arbeid for å få informasjonen man trenger
+- Liten oversikt over oppgavestørrelser fører til liten oversikt over «WIP». Plutselig kan en ny og ung utvikler gjøre noe kjempestort for å vise seg frem som flink og motivert, men dette kan gå utenfor scope og til slutt være arbeid man må forkaste.
+- Overlevering av ny JAR fra «Jens» til «Team Dino» hver gang det kommer en ny versjon, er problematisk. Overlevering i ‘batch’ på denne måten er mye mindre effektivt enn overlevering i en steady flow av kontinuerlige leveranser der hver nye feature kommer til «Team Dino» med en gang etter merge til main branch. Dette er en typisk flaskehals.
+- Spesielt når majoriteten av de ansatte er avhengig av en ny versjon for å teste, vil det bli waste i stor grad om det ikke kommer noen ny versjon. Da vil størsteparten av «Team Dino» sitte uten noe å gjøre. 
 
-* Eksamensoppgaven er gitt på GitHub repository ; https://github.com/PGR301-2021/eksamen_2021
-* Du skal IKKE lage en fork av dette repositoryet, men kopiere innholdet til et nytt repository. Årsaken til dette er at sensor vil lage en fork av ditt repo, og arbeidsflyten blir lettere for sensor om har har et frittstående repo.
-* Du kan velge å kode i et privat eller public repo.
-* Du kan jobbe i et privat repo, og deretter gjøre det public noen timer etter innleveringsfrist hvis du er bekymret for plagiat fra medstudenter.
+Det er klart at man må endre fra overleveringer fra ‘batch’ til å bli en kontinuerlig flyt. Mer planlegging og oversikt hvor hva som gjøres.  
 
-Når sensor evaluerer oppgaven vil han/hun se på
+Måten «Team Dino» kun gjør manuelle tester før de setter den nye versjonen i drift, vil i stor grad skape venting og være enda en overlevering som kan automatiseres i stor grad. Fordelingen kan endres så flere ansatte blir flyttet fra «Team Dino» over til utvikler-teamet, men beholder fokus på testing. De vil jobbe med å utvikle automatiske tester som må godkjennes før koden i det hele tatt kommer til «Team Dino», slik forklart tidligere med «Branch protection rules».  
 
-* Ditt repository og "Actions" fanen i GutHub for å bekrefte at Workflows faktisk virker
-* AWS miljøet i klassens AWS konto for å bekrefte at oppgaver som beskrevet er utført
-* Vurdere drøftelsesoppgavene. Det anbefales å lage en egen "Readme/Markdown" for disse i ditt repo.
-* Lager en fork av ditt repo og tester ut pipelines med egen AWS bruker/github bruker.
+«Team Dino» sin overvåkning dekker ikke prinsippene om feedback. Resultatet er faktaløs «blamestorming». Det skal ikke trenge å gjøre omstart av applikasjonen hver dag. Løsningen her er å implementere logging og telemetri, slik at man kan lokalisere og fikse feil over å ansette nye til å gjøre manuell testing.
 
-Ved innlevering via WiseFlow, kan dere lage et tekstdokument som kun inneholder link til deres repository
+## Oppgave – Feedback
 
-## Evaluering 
+Siden det lå en Logback.xml i repository, tok jeg dette som et hint på å bruke Logger til tross for at
+det ikke står nevnt i oppgaveteksten. Det er også lagt inn målepunkter for micrometer.
 
-* DevOps prinsipper & Pipeline - 20 poeng  
-* Feedback & Telemetri -30 poeng
-* Terraform og IAC i Pipeline - 30 poeng
-* Docker - 20 poeng
+Micrometer er satt opp slik som gjort i veiledningstime, med Grafana og Influxdb kjørende i docker.
+Alle endepunkter har egne måling for hvor lang tid de tar.
 
-## Litt om GitHub free tier
+Navn på målinger fra micrometer:
+- `application_started` – viser når man har startet applikasjonen. Dette vil gi en oversikt over hvor ofte «Team Dino» har startet prosessen på nytt.
+- `post_transfer_delay` – viser hvor lang tid det tok å kalle på endepunktet for overføring.
+- `post_new_account_delay` – viser hvor lang tid det tok å kalle på endepunktet for å lage en ny eller oppdatere en eksisterende konto. Inneholder samme info som post_transfer_delay også.
+- `get_account_by_id_delay` – viser hvor lang tid det tok å kalle på endepunktet for å få info om en konto. Har også samme målinger som post_transfer_delay.
+- `back_end_exception` – en delles metric som logges for alle endpoints som kalles. Her kan man bruke en spørring for å få antall exceptions; `SELECT sum("count") FROM "Back_End_Exception" WHERE ("exception" = 'BackEndException')`.
+- `application_started` – se når application er startet. Det er også en logger info for dette.
+- `transfer` – info om hvor mye som blir øverført.
+- `update_account` – når man kaller på updateAccount.
+- `balance` – når man kaller på å få info om en konto
+- `account_balance` – den faktiske balansen på en konto.
 
-* I oppgaven blir du bedt om å lage GitHub actions workflows.
-* Med GitHub "Free tier" har du 2,000 minutter med gratis byggetid per måned, dersom du bruker et privat repo.
-* Dersom dere i en ekstrem situasjon skulle trenge mer byggetid, kan dere gjøre repository public. Da er byggetiden ubegrenset.
-* Hvis dere da er bekymret for at andre skal kopiere arbeidet deres, kan dere lage en ny GitHub bruker med et tilfeldig navn.
+For å se målinger kan sensor kjøre f.eks. `select * from get_account_by_id_delay`. Her vil man kunne se info om @timer tilknyttet et endepunkt. Bl.a info om statuskode, uri, om det er GET eller POST og info om hvilken exception som mulig kalles.
 
-OBS!
+Bilde av kall for å få BackEndExceptions, som nevnt litt over:
+![back_end_exception_influx.png](img/back_end_exception_influx.png)
 
-* I "Free" planen til GitHub er "branch protection" ikke tillat når et repository er privat. Det vil si at dere ikke kan konfigurere GitHub til å hindre push mot for eksempel _main_ branch direkte, eller konfigurere regler for godkjenning før merge av pull request osv.
-* I denne oppgaven blir dere bedt om å beskrive _hvordan_ dette kan gjøres, men dere trenger altså ikke konfigurere dette for repoet dere leverer.
+Man kan se når applikasjonen har startet:  
+![application_started.png](img/application_started.png)
 
-## Beskrivelse av API
+POST kall for transfer som gir back end exception:  
+![back_end_exception_for_post_transfer.png](img/back_end_exception_for_post_transfer.png)
 
-APIet eksponerer tre endepunkter, dere kan ikke endre på disse
+GET account by id som ikke ender I noe exception:  
+![successful_get_account_uten_exception.png](img/successful_get_account_uten_exception.png)
 
-*  /account/{fromAccount}/transfer/{toAccount} [POST] - Overfører penger mellom to kontoer. Oppretter kontoer for både mottaker ov avsender dersom de ikke finnes. Se modellpakken for beskrivelse av Payload
-*  /account [POST] - Oppdaterer en konto - Se modellpakken for beskrivelse av Payload
-*  /accoount/{accountId} [GET] - Returnerer kontoopplysninger
 
-## Oppgave - DevOps
+Logger er satt opp til å vise når man starer applikasjonen og for å vise balansen til kontoen man
+sender penger til i transfer, både før og etter transfer skjer.  
+Logback.xml er endre til å også vise «info» til STDOUT, noe som hjelper med å vise hvorfor det er
+delay; `24270 [http-nio-8080-exec-1] INFO c.p.e.ReallyShakyBankingCoreSystemService - Waiitng
+for 4268`.
 
-Med DevOps som arbeidsmåte i tankene- Hvilke forbedringer kan teamet gjøre med fokus på måten de jobber med kildekode og versjonskontroll?
+## Oppgaver Terraform
+*Drøft: Hvorfor funket terraform koden i dette repoet for «Jens» første gang det ble kjørt? Og hvorfor feiler det for alle andre etterpå, inkludert Jens etter at han har ryddet på disken sin og slettet terraform.tfstate filen?*
 
-### Drøft
+Terraform-koden til Jens oppretter en S3-bucket. En tfstate-fil inneholder informasjon om infrastrukturen som er bygd ved hjelp av Terraform. Første gang Jens kjørte `terraform apply`, bygde den hans S3-bucket og lagret informasjonen om dette i hans terraform-tfstate fil. Om Jens ville kjørt koden igjen uten å slette tfstate-filen, ville tfstate-filen visst hva som fantes i infrastrukturen fra forrige gang, slik at Terraform vet hva som mulig skal endres. Men siden Jens slettet tfstate-filen, vil Terraform tro at det ikke finnes noen infrastruktur på AWS, og dermed prøve å opprette fra scratch, noe som feiler fordi S3 bucketen som han opprettet første gang han kjørte koden, fortsatt ligger der. Det samme vil skje for alle de andre – deres Terraform vil tro at det ikke finnes noen infrastruktur, siden de ikke har noen tfstate fil, og få feilmelding fordi de prøver å opprette en bucket som allerede finnes.  
+For å løse dette kan de slette S3-bucketen og opprette den på nytt ved å kjøre `terraform apply` igjen. Da vil de få en ny tfstate fil som de så må ta vare på og heller dele mellom seg. Dette kan selvsagt være litt tungvint, så en bedre løsning vil være å lagre den i en cloud-tjeneste som terraform.io, eller AWS S3 som vi viser senere i denne oppgaven.
 
-* Beskriv med ord eller skjermbilder hvordan man kan konfigurere GitHub på en måte som gir bedre kontroll på utviklingsprosessen. Spesielt med tanke på å hindre kode som ikke kompilerer og feilende tester fra å bli integrert i _main_ branch.
-* Beskriv med ord eller skjermbilder hvordan GitHub kan konfigureres for å sikre at minst ett annet medlem av teamet har godkjent en pull request før den merges.
-* Beskriv hvordan arbeidsflyten for hver enkelt utvikler bør være for å få en effektiv som mulig utviklingsprosess, spesielt hvordan hver enkelt utvikler bør jobbe med Brancher i Github hver gang han eller hun starter en ny oppgave.
+#### AWS CLI
 
-### Drøft
+*Sensor ønsker å lage sin egen bucket ved hjelp av CLI. Sensor har AWS kommandolinje installer på sin lokale maskin. Hva må sensor gjøre for å konfigurere AWS nøkler/Credentials? Anta at sensor sin AWS bruker ikke har nøkler/credentials fra før.*
 
-SkalBank har bestemt seg for å bruke DevOps som underliggende prinsipp for all systemutvikling i banken. Er fordeling av oppgaver mellom API-teamet og "Team Dino" problematisk med dette som utgangspunkt? Hvilke prinsipper er det som ikke etterleves her? Hva er i så fall konsekvensen av dette?
+Det første sensor må gjøre er å autentisere seg mot AWS ved hjelp av nøkler som er knyttet til brukerkontoen. Det trengs to nøkler; en Access Key og en Secret Access Key. Disse finner man I AWS brukergrensesnittet; `IAM -> Security Credentials -> Access keys for CLI, SDK, & API access -> Create Access Key`.  
+For å autentisere seg kjører man kommandoen `aws configure` i AWS CLI. Man fyller inn Access Key og Secret Access Key når man blir bedt om det, velger region eu-west-1 som default region name, og på output format kan det anbefales å velge json.    
+For å opprette en ny bucket fra CLI må sensor skrive: `aws s3api create-bucket --bucket pgr301-sensor123-terraform --create-bucket-configuration LocationConstraint=eu-west-1`. Merk at `pgr301-sensor123-terraform` her er navnet på bucketen, og er valgfritt.
 
-## Oppgave Pipeline
+## Terraform i Pipeline
+- For enhetstester står det at de kun skal kjøre ved push til main, men dette fjerner litt av poenget med ‘branch protection’, så jeg har valg å tolke dette som en feil i oppgaven og har derfor satt opp workflow for dette til å også kjøre ved pull request.
+- Terraform Plan kjøres kun når det gjøres pull requests mot master branch.
+- Terraform apply kjøres kun når det pushes til master branch.
+- Pipelinen feiler dersom Terraform ikke er formatert riktig.
+- Det blir ikke gjort noen faktiske endringer om det ikke er endring på koden i infra-mappen.
 
-Skriv minst en enhetstest. Enhetstester er ikke Team API sin sterkeste side.
-Lag en GitHub actions workflow som ved hver *push* mot ```origin/main``` branch gjør følgende ved hjelp av Maven, og pom.xml filen som ligger i dette repoet.
+*Beskriv hva sensor må gjøre etter han/hun har laget en fork for å få pipeline til å fungere for i sin AWS/gitHub konto. Hvilke verdier må endres i koden? Hvilke hemmeligheter må legges inn i repoet. Hvordan gjøres dette?*
 
-* Kjører enhetstester
-* Kompilerer koden
-* Bygger artifakt (JAR)
+- Sensor må legge til det som kalles ‘secrets’ i github-repository. Dette er de samme nøklene som man brukte tidligere for å autentisere seg i AWS CLI (`IAM -> Security Credentials -> Access keys for CLI, SDK, & API access -> Create Access Key`), og gjør at GitHub kan autentisere seg mot AWS på samme måte som AWS CLI. I github-repositoriet, velg `Settings -> Secrets -> New repository secret`. Name er navnet på nøkkelen, mens i Value skal man skrive inn selve nøkkelen. Under er også vedlagt et screenshot av hvordan det skal se ut.
+  - Name: `AWS_ACCESS_KEY_ID`, Value: nøkkelen fra “Access key ID”.
+  - Name: `AWS_SECRET_ACCESS_KEY`, Value: nøkkelen fra “Secret access key”.
 
-Sensor vil
+  ![gibhub_secrets.png](img/github_secrets.png)  
 
-* Brekke testen med vilje, og se at pipelinen feiler.
-* Forsøke å pushe kode som ikke kompilerer til main.
 
-## Oppgave - Feedback
+Ting som må endres i koden:  
+Merk at master/main er begge navn på hoved-branchen. Jeg har brukt ‘master’ fordi det var default ved opprettelse av repositoriet. Om man kun kjører en fork vil man ikke trenge å endre dette, men jeg legger allikevel ved info om hvor man må endre dette, om man f.eks. laster ned ZIP fil og deler det i et nytt repository der man bruker ‘main’.
+- `/.github/workflows/create_image.yaml` – Her må man mulig endre ‘master’ til ‘main’ på linje 6. Man må også endre URL til ECR repository på linje 20 og AWS username på linje 23. Linje 24 er navn på Docker imaget, f.eks. pgr301kaam004eksamen.
+- `/.github/workflows/s3_terraform.yaml` – Her må man mulig endre ‘master’ til ‘main’ på linje 4, 6 og 75.
+- `/.github/workflows/verify_tests.yaml` – Her må man mulig endre ‘master’ til ‘main’ på linje 5 og 7.
+- `/infra/ecr_repository.tf` – Linje 2, endre «kaam004» til det sensor ønsker å kalle sitt ECR repository, f.eks. «sensor123».
+- `/infra/provider.tf` – Linje 9 er navnet på S3 bucketen man oppretter, og må endres til f.eks. «pge301-sensor123-terraform». Linje 10 må i teorien ikke endres, men det kan anbefales å endre til f.eks. «pgr301-sensor123-terraform.state», eller bare «terraform.state». Det er ikke nødvendig med en unik identifikator på state-filen slik jeg har gjort.
 
-Når noe går galt, noe som stort sett er hele tiden, kan ikke "Team Dino" gjøre noe annet enn å starte prosessen på nytt, de har ingen innsikt i applikasjonen sin
-tilstand mens den kjører.
-
-Det har vært opphetede debatter om hvor problemene oppstår.
-
-Teamet som lager Kjernesystemet peker på APIet, og API teamet peker på kjernesystemet.
-
-Et av de største problemene er de lange, og lite konsekvente responstidene.
-
-### Endre applikasjonen slik at den gir fra seg telemetri
-
-Gjør nødvendige endringer i Spring Boot applikasjonen, slik at den produserer metrics med Micrometer rammeverket og leverer disse til Influx DB på lokal maskin.
-
-* Legg til kode som registrerer målepunkter i applikasjonen, slik at dere kan bevise med fakta hva som forårsaker de dårlige responstidene.
-* Det ønskelig å måle hvor ofte APIet faktisk kaster "BackEndException"
-* Dere kan anta at sensor kjører InfluxDB på sin maskin.
-* Sensor vil gjøre flere kall mot endepunktene i applikasjonen med for eksempel Curl eller Postman  
-
-Bruk valgfrie mekanismer fra Micrometer rammeverket (Timer, Counter, Gauge, LongTaskTimer, DistributionSummary osv) for å samle data fra hvert av endepunktene i APIet.
-
-* Hvilke spørring(er) kan sensor gjøre mot InfluxDB for å analysere problemet? For eksempel noe i retning av;
-
-```sql
-select * from my_timer_metric_name
-```
-
-* Start Grafana på lokal maskin ved hjelp av Docker. Bruk InfluxDB som en datakilde og legg ved et skjermbilde av et Dashboard du har laget som viser en Metric fra InfluxDB som er produsert av Micrometer rammeverket.
-
-NB.
-
-Dersom du løser oppgaven på Linux operativsystem, vil jeg anbefale å bruke "host" basert nettverksmodus for Docker slik at Spring boot applikasjonen, Influx DB og Grafana kan kommunisere fritt på "localhost".
-
-I denne oppgaven vektlegges det at du har klart å bruke Micrometer rammeverket til å identifisere problemområdet til applikasjonen. 
-
-## Oppgave Terraform
-
-Terraformkoden ligger i _infra_ katalogen i dette repoet.
-
-Teamet som har laget SkalBank sitt API, started med høye ambisjoner om å lage terraform kode for all infrastruktur, men de møtte raskt på problemer, og ga opp.
-
-Hver gang en utvikler kjører ```terrafomrm apply``` fra sin maskin, dukker det opp en
-_terraform.tfstate_ fil i samme mappe som de kjører terraform fra. Og prosessen feiler.
-
-Dette fungerte, i følge teamet, på "Jens" sin maskin minst en gang for lenge siden, og bucket ble opprettet i S3. Men, det feiler for alle andre. Det feiler også for Jens nå, etter han "ryddet" på maskinen sin og slettet den mystiske _terraform.tfstate_ filen.
-
-Nå får alle samme feilmelding!
-
-```
-aws_s3_bucket.mybucket: Creating...
-
-Error: Error creating S3 bucket: BucketAlreadyOwnedByYou: Your previous request to create the named bucket succeeded and you already own it.
-	status code: 409, request id: R17AHHV5ACY29JYQ, host id: fRoCEBp3sHGQ3ci3eYP9O+HjyorolaCfvtPw5V78DdM8mvm6bJlVSctoAgq8PhrkMZiydjNkLXg=
-
-  on bucket.tf line 1, in resource "aws_s3_bucket" "mybucket":
-   1: resource "aws_s3_bucket" "mybucket" {
-```
-
-### Drøft
-
-Hvorfor funket terraformkoden i dette repoet for "Jens" første gang det ble kjørt? Og hvorfor feiler det for alle andre etterpå, inkludert Jens etter at han ryddet på disken sin og slettet _terraform.tfstate_ filen?
-
-Viktig! 
-
-Slett _infra/bucket.tf_ fra repoet ditt. Du skal ikke ha med denne filen videre i din egen infraoppgave.
-
-### Lag en S3 bucket i klassens AWS konto
-
-Bruk påloggingsinforasjonen gitt i Canvas for å logge på klassens AWS konto. Bruk AWS Console (UI) eller CLI til å lage en S3 bucket. Denne skal ha følgende egenskaper.
-
-* Navn skal ha pgr301-!identifikator!-terraform
-* Region skal være eu-west-1
-
-Identifikator kan for eksempel være kandidatnummer for eksamen. Eller studentnavnet ditt.
-
-### AWS CLI
-
-Sensor ønsker å lage sin bucket ved hjelp av CLI. Sensor har aws kommandolinje installert på sin lokale maskin. Hva må sensor gjøre for å konfigurere AWS nøkler/Credentials? Anta at Sensor sin AWS bruker ikke har nøkler/credentials fra før.
-
-Fullfør
-```
-aws s3api ...
-```
-
-AWS brukeren du har fått utlevert har ingen nøkler. Ved hjelp av Console (UI) Lag en Access Key som du kan bruke videre i oppgaven.
-
-### Endre Terraform provider til å bruke en S3 backend for state.
-
-Gjør nødvendige endringer i Terraform kode for å bruke en Backend som lagrer state i et objekt i S3 bucketen du opprettet i forrige oppgave.
-
-### Terraform kode
-
-Lag Terraform kode som oppretter følgende ressurser i klassens AWS konto, i region _eu-west-1_
-
-- ECR repository. Navnet på repository skal være studentnavn eller en annen unik identifikator, for eksempel kandidatnummer for eksamen.
-
-ECR (Elastic Container Reigstry) brukes for å lagre Docker container images. Vi skal bruke dette ECR Repoet i en senere oppgave.
-
-### Terraform i Pipeline
-
-* Implementer en workflow med GitHub actions som kjører ```Terraform init & apply``` for hver endring av kode i _main_ branch.
-* Implementer en workflow med GitHub actions som kjører ```Terraform init & plan``` for hver pull request som lages mot main branch slik at de som gjør en code review kan se hva konsekvensen av å godta endringen vil være.
-* Pipeline skal feile dersom Terraformkode som pushes til main ikke er riktig formatert.
-* Pipeline skal bare kjøre dersom det er endringer in *ifra/* katalogen.
-
-Sensor vil å lage en fork av ditt repo
-
-* Beskriv hva sensor må gjøre etter han/hun har laget en fork for å få pipeline til å fungere for i sin AWS/gitHub konto.
-* Hvilke verdier må endres i koden?
-* Hvilke hemmeligheter må legges inn i repoet. Hvordan gjøres dette?
- 
 ## Oppgave - Docker
 
-Teamet har bestemt seg for å ta i bruk Docker. En av årsakene til dette er at medlemmer av "Team Dino" ofte ikke har Java SDK og Maven installert på sine maskiner.
+- Workflowen (create_image.yaml) kjører kun ved push til master.
+- Om man prøver å omgå 'branch protection' fordi man har feilende tester, vil workflowen feile og ikke fullføre push til ECR.
+- Alle container-images har unik tag som identifiserer hvilken github commit som ble brukt som grunnlag. Det er også en latest-tag.
+- ECR repository er det samme som lages automatisk av terraform.
 
-Obs!
+*Hva vil kommandolinjer for å bygge et container image være?*  
+`docker build . -t containerimage`  
 
-Når dere starter applikasjonen i Docker, eller via Spring Boot, uten at InfluxDB kjører vil dere få mange feilmeldinger av denne typen i terminalen
+*Hva vil kommando for å starte en container være? Applikasjonen skal lytte på port 7777 på din maskin.*  
+`docker run -p 7777:8080 containerimage`  
+Merk at «containerimage» er navnet på imaget. Her burde man ha et litt mer beskrivende navn. I min besvarelse har jeg brukt «pgr301kaam004eksamen». Man kan også spesifisere tag når man builder eller kjører, ved å legge på :tag etter containerimage, f.eks.; «pgr301kaam004eksamen:latest».
 
-```java
-java.net.ConnectException: Connection refused (Connection refused)
-	at java.base/java.net.PlainSocketImpl.socketConnect(Native Method) ~[na:na]
-	at java.base/java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:399) ~[na:na]
-	at java.base/java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:242) ~[na:na]
-	at java.base/java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:224) ~[na:na]
-	at java.base/java.net.Socket.connect(Socket.java:609) ~[na:na]
-```
-
-Dette er fordi Spring Boot applikasjonen ikke har nettverksforbindelse til InfluxDB. Disse feilmeldingene kan dere ignorere, og Spring Boot applikasjonen fungerer som forventet til tross for feilmeldinger.    
-
-### Dockerfile
-
-"Jens" som er Tech lead er *veldig* skeptisk til Endringer. Applikasjonen har er utviklet for Java 11, og det ønsker han å fortsette med i all fremtid. Derimot sier magefølelsen hans, som han stoler mye på, at applikasjonen sitt *kjøremiljø* bør være basert på det splitter nye  ```openjdk:18-jdk-alpine3.14``` container imaget. Ta høyde for dette i Dockerfilen du skriver.
-
-* Skriv en ```Dockerfile``` og legg den til i ditt repository.  Docker prosessen skal både kompilere og bygge Spring Boot applikasjonen, og kjøre den.
-
-Hva vil kommandolinje for å _bygge_ et container image være? Fullfør ...
-
-```shell
-docker .....
-```
-
-Hva vil kommando for å _starte_ en container være? Applikasjonen skal lytte på port 7777 på din maskin. Fullfør...
-
-```shell
-docker .....
-```
-
-Medlemmer av "Team Dino" har av og til behov for å kjøre to ulike versjoner av applikasjonen lokalt på maskinen sin, _samtidig_ .Hvordan kan de gjøre dette uten å få en port-konflikt?  Hvilke to kommandoer kan man kjøre for å starte samme applikasjon to ganger, hvor den ene bruker port 7777 og den andre 8888?
-
-```shell
-docker .....
-```
-
-```shell
-docker .....
-```
-
-Lag en GitHub Actions workflow som bygger et Docker image av Spring Boot applikasjonen.
-
-* GitHub Workflowen skal kjøres ved hver push til _main_ branch.
-* Hvert Container image skal ha en unik tag som identifiserer hvilken commit i GitHub som ble brukt som grunnlag for å bygge container image.
-* Container image skal pushes til ECR repository som ble laget i Terraform oppgaven.
-* Hvis du ikke har fått til Terraform oppgaven, kan du lage et ECR repository manuelt via AWS console (UI), og du får ikke poengtrekk i denne oppgaven dersom du gjør dette.
-
-Lykke til og ha det moro!
+*Medlemmer av «Team Dino» har av og til behov for å kjøre to ulike versjoner av applikasjonen lokalt på maskinen sin, samtidig. Hvordan kan de gjøre dette uten å få port-konflikt? Hvilke to kommandoer kan man kjøre for å starte samme applikasjon to ganger, hvor den ene bruker port 7777 og den andre 8888?*  
+Man må bare kjøre den samme run kommandoen to ganger, der man endrer hvilken port docker
+lytter på mot maskinen.  
+`docker run -p 7777:8080 containerimage`  
+`docker run -p 8888:8080 containerimage`  
