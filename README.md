@@ -1,10 +1,11 @@
-# Eksamen PGR301
-
+# PGR301 DevOps Eksamen, Høst 2021, Høyskolen Kristiania
 
 [![Java CI with Maven](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/verify_tests.yaml)
 [![Terraform S3 and ECR](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/s3_terraform.yaml)
 [![Publish Docker image to ECR](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/create_image.yaml/badge.svg)](https://github.com/Kaikka/PGR301_Eksamen/actions/workflows/create_image.yaml)
 
+Kandidatnummer: 2017
+Alle oppgaver er fullført slik jeg tolket dem
 
 ## Oppgave – DevOps
 - *Beskriv med ord eller skjermbilder hvordan man kan konfigurere GitHub på en måte som gir bedre kontroll på utviklingsprosessen. Spesielt med tanke på å hindre kode som ikke kompilerer og feilende tester fra å bli integrert i main branch.*
@@ -14,35 +15,71 @@
 For å få god kontroll på arbeidsprosessen kan man sette opp «Branch protection rules», i `Settings -> Branches -> Add Rule`. «Require a pull request before merging» betyr at man ikke kan pushe rett til main, men at man må gå gjennom en annen branch og så lage pull requests. Man kan sikre at andre medlemmer har godkjent pull requesten ved å velge «Require approvals».  
 NB: Man må også velge «Include administrators» om det skal gjelde for absolutt alle. 
 
-![](pull_review_require_approval.png)
+![pull_review_require_approval.png](img/pull_review_require_approval.png)
 
-For å forhindre at man får feilende tester i main branchen, kan man sette opp å kreve status checks før man merger. I bildet under er det valgt at «build» is Github Actions skal bli godkjent før man kan merge en pull request. I eksempelet her vil koden prøve å builde en JAR med `mvn -B package –file pom.xml`. Om det failer, kan man ikke merge. Man kunne også kun kjørt tests, f.eks `npm test` i et prosjekt som bruker npm, f.eks en nettside i React
+For å forhindre at man får feilende tester i main branchen, kan man sette opp å kreve status checks før man merger. I bildet under er det valgt at «build» is Github Actions skal bli godkjent før man kan merge en pull request. I eksempelet her vil koden prøve å bygge en JAR med  `mvn -B package –file pom.xml`. Om det feiler, kan man ikke merge. Man kan også kun kjøre tester, f.eks. `npm test` i et prosjekt som bruker npm, f.eks. en nettside i React.
 
-![](pull_test_require_running.png)
+![pull_test_require_running.png](img/pull_test_require_running.png)
 
-For å få en effektiv arbeidsflyt, burde nye oppgaver ha egne branches, som igjen er navngitt med beskrivende navn. Man kan også knytte potensielle github issues opp mot branch ved å bruke github issues ID i navnet på branchen. Her kan forskjellige firmaer ha forskjellige konvensjoner på hvordan de navngir branches, men et eksempel vil være «tests/added-tests-to-cover-doSomething/issueID». Ikke «fix-new-test».
+For å få en effektiv arbeidsflyt, burde nye oppgaver ha egne branches, som igjen er navngitt med beskrivende navn. Man kan også knytte mulige github issues opp mot branch ved å bruke github issues ID i navnet på branchen. Her kan forskjellige firmaer ha forskjellige konvensjoner på hvordan de navngir branches, men et eksempel vil være «feature/feature-pomchange». Ikke «fix-new-test».  
+Her er det viktig at man ikke går utover det branchen er ment for. En branch som er for en spesifikk type test skal plutselig ikke inneholde 3 andre ting når man gjør pull request. Man må begrense oppgavestørrelse for å opprettholde god flow.
 
-#### Drøft:
-*SkalBank har bestemt seg for å bruke DevOps som underliggende prinsipp for all systemutvikling i banken. Er fordeling av oppgaver mellom API-teamet og «Team Dino» problematisk med dette som utgangspunkt? Hvilke prinsipper er det som ikke etterleves her? Hva er i så fall konsekvensen av dette?*
+*Drøft: SkalBank har bestemt seg for å bruke DevOps som underliggende prinsipp for all systemutvikling i banken. Er fordeling av oppgaver mellom API-teamet og «Team Dino» problematisk med dette som utgangspunkt? Hvilke prinsipper er det som ikke etterleves her? Hva er i så fall konsekvensen av dette?*
 
 Måten utvikler-teamet alle pusher til main kontinuerlig, uten å hverken bygge eller teste koden, skaper flere problemer for flyten. Det bryter med *VCS* og *Kontinuerlig integrasjon*, og kan skape mye *Waste* på flere måter. Det kan også resultere i at arbeid ikke er veldig synlig, oppgavestørrelser kan bli for store og man har liten oversikt over «WIP» (Work in progress).
 
-
 - Om to utviklere jobber på forskjellige ting, kan det hende de forårsaker defekter for hverandre. Plutselig fungerer ikke koden til utvikler A fordi utvikler B har gjort en endring et sted. Da må begge «context switche» for å løse problemet.
-- Uten god planlegging blir det fort venting på andre features når man skal legge inn nye ting. F.eks. om man skal vise noe nytt i en frontend, men det avhenger at man først får informasjon om et nytt API-endepunkt man trenger. Eller at man skal bruke et eksisterende endepunkt som mangler dokumentasjon, så man må ta tak i en annen utvikler og skape avbrudd i dens arbeid for å få informasjonen man trenger.
+- Uten god planlegging blir det fort venting på andre features når man skal legge inn nye ting, om det avhenger av hverandre. Om man skal bruke et eksisterende endepunkt som mangler dokumentasjon, man må ta tak i en annen utvikler og skape avbrudd i dens arbeid for å få informasjonen man trenger
 - Liten oversikt over oppgavestørrelser fører til liten oversikt over «WIP». Plutselig kan en ny og ung utvikler gjøre noe kjempestort for å vise seg frem som flink og motivert, men dette kan gå utenfor scope og til slutt være arbeid man må forkaste.
 - Overlevering av ny JAR fra «Jens» til «Team Dino» hver gang det kommer en ny versjon, er problematisk. Overlevering i ‘batch’ på denne måten er mye mindre effektivt enn overlevering i en steady flow av kontinuerlige leveranser der hver nye feature kommer til «Team Dino» med en gang etter merge til main branch. Dette er en typisk flaskehals.
-- Spesielt når majoriteten av de ansatte er avhengig av en ny versjon for å teste, vil det bli waste i stor grad om det ikke kommer noen ny versjon. Da vil størsteparten av «Team Dino» sitte uten noe å gjøre. Det er klart at man må endre fra overleveringer fra ‘batch’ til å bli en kontinuerlig flyt. Mer planlegging og oversikt hvor hva som gjøres.  
+- Spesielt når majoriteten av de ansatte er avhengig av en ny versjon for å teste, vil det bli waste i stor grad om det ikke kommer noen ny versjon. Da vil størsteparten av «Team Dino» sitte uten noe å gjøre. 
 
+Det er klart at man må endre fra overleveringer fra ‘batch’ til å bli en kontinuerlig flyt. Mer planlegging og oversikt hvor hva som gjøres.  
 
 Måten «Team Dino» kun gjør manuelle tester før de setter den nye versjonen i drift, vil i stor grad skape venting og være enda en overlevering som kan automatiseres i stor grad. Fordelingen kan endres så flere ansatte blir flyttet fra «Team Dino» over til utvikler-teamet, men beholder fokus på testing. De vil jobbe med å utvikle automatiske tester som må godkjennes før koden i det hele tatt kommer til «Team Dino», slik forklart tidligere med «Branch protection rules».  
 
 «Team Dino» sin overvåkning dekker ikke prinsippene om feedback. Resultatet er faktaløs «blamestorming». Det skal ikke trenge å gjøre omstart av applikasjonen hver dag. Løsningen her er å implementere logging og telemetri, slik at man kan lokalisere og fikse feil over å ansette nye til å gjøre manuell testing.
 
-
 ## Oppgave – Feedback
 
-**TODO: Skjermbilde av dashboard i grafana (og influxdb?), og kanskje noe tekst om det osv osv**
+Siden det lå en Logback.xml i repository, tok jeg dette som et hint på å bruke Logger til tross for at
+det ikke står nevnt i oppgaveteksten. Det er også lagt inn målepunkter for micrometer.
+
+Micrometer er satt opp slik som gjort i veiledningstime, med Grafana og Influxdb kjørende i docker.
+Alle endepunkter har egne måling for hvor lang tid de tar.
+
+Navn på målinger fra micrometer:
+- `application_started` – viser når man har startet applikasjonen. Dette vil gi en oversikt over hvor ofte «Team Dino» har startet prosessen på nytt.
+- `post_transfer_delay` – viser hvor lang tid det tok å kalle på endepunktet for overføring.
+- `post_new_account_delay` – viser hvor lang tid det tok å kalle på endepunktet for å lage en ny eller oppdatere en eksisterende konto. Inneholder samme info som post_transfer_delay også.
+- `get_account_by_id_delay` – viser hvor lang tid det tok å kalle på endepunktet for å få info om en konto. Har også samme målinger som post_transfer_delay.
+- `back_end_exception` – en delles metric som logges for alle endpoints som kalles. Her kan man bruke en spørring for å få antall exceptions; `SELECT sum("count") FROM "Back_End_Exception" WHERE ("exception" = 'BackEndException')`.
+- `application_started` – se når application er startet. Det er også en logger info for dette.
+- `transfer` – info om hvor mye som blir øverført.
+- `update_account` – når man kaller på updateAccount.
+- `balance` – når man kaller på å få info om en konto
+- `account_balance` – den faktiske balansen på en konto.
+
+For å se målinger kan sensor kjøre f.eks. `select * from get_account_by_id_delay`. Her vil man kunne se info om @timer tilknyttet et endepunkt. Bl.a info om statuskode, uri, om det er GET eller POST og info om hvilken exception som mulig kalles.
+
+Bilde av kall for å få BackEndExceptions, som nevnt litt over:
+![back_end_exception_influx.png](img/back_end_exception_influx.png)
+
+Man kan se når applikasjonen har startet:  
+![application_started.png](img/application_started.png)
+
+POST kall for transfer som gir back end exception:  
+![back_end_exception_for_post_transfer.png](img/back_end_exception_for_post_transfer.png)
+
+GET account by id som ikke ender I noe exception:  
+![successful_get_account_uten_exception.png](img/successful_get_account_uten_exception.png)
+
+
+Logger er satt opp til å vise når man starer applikasjonen og for å vise balansen til kontoen man
+sender penger til i transfer, både før og etter transfer skjer.  
+Logback.xml er endre til å også vise «info» til STDOUT, noe som hjelper med å vise hvorfor det er
+delay; `24270 [http-nio-8080-exec-1] INFO c.p.e.ReallyShakyBankingCoreSystemService - Waiitng
+for 4268`.
 
 ## Oppgaver Terraform
 *Drøft: Hvorfor funket terraform koden i dette repoet for «Jens» første gang det ble kjørt? Og hvorfor feiler det for alle andre etterpå, inkludert Jens etter at han har ryddet på disken sin og slettet terraform.tfstate filen?*
@@ -59,6 +96,7 @@ For å autentisere seg kjører man kommandoen `aws configure` i AWS CLI. Man fyl
 For å opprette en ny bucket fra CLI må sensor skrive: `aws s3api create-bucket --bucket pgr301-sensor123-terraform --create-bucket-configuration LocationConstraint=eu-west-1`. Merk at `pgr301-sensor123-terraform` her er navnet på bucketen, og er valgfritt.
 
 ## Terraform i Pipeline
+- For enhetstester står det at de kun skal kjøre ved push til main, men dette fjerner litt av poenget med ‘branch protection’, så jeg har valg å tolke dette som en feil i oppgaven og har derfor satt opp workflow for dette til å også kjøre ved pull request.
 - Terraform Plan kjøres kun når det gjøres pull requests mot master branch.
 - Terraform apply kjøres kun når det pushes til master branch.
 - Pipelinen feiler dersom Terraform ikke er formatert riktig.
@@ -70,7 +108,7 @@ For å opprette en ny bucket fra CLI må sensor skrive: `aws s3api create-bucket
   - Name: `AWS_ACCESS_KEY_ID`, Value: nøkkelen fra “Access key ID”.
   - Name: `AWS_SECRET_ACCESS_KEY`, Value: nøkkelen fra “Secret access key”.
 
-  ![](github_secrets.png)  
+  ![gibhub_secrets.png](img/github_secrets.png)  
 
 
 Ting som må endres i koden:  
@@ -84,6 +122,7 @@ Merk at master/main er begge navn på hoved-branchen. Jeg har brukt ‘master’
 ## Oppgave - Docker
 
 - Workflowen (create_image.yaml) kjører kun ved push til master.
+- Om man prøver å omgå 'branch protection' fordi man har feilende tester, vil workflowen feile og ikke fullføre push til ECR.
 - Alle container-images har unik tag som identifiserer hvilken github commit som ble brukt som grunnlag. Det er også en latest-tag.
 - ECR repository er det samme som lages automatisk av terraform.
 
